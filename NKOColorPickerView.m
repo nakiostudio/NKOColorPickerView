@@ -6,6 +6,8 @@
 //  Based on work by Fabián Cañas and Gilly Dekel
 //
 
+#import "NKOColorPickerView.h"
+
 //NKOBrightnessView
 @interface NKOBrightnessView: UIView
 
@@ -21,7 +23,6 @@
 @end
 
 //NKOColorPickerView
-#import "NKOColorPickerView.h"
 
 CGFloat const NKOPickerViewGradientViewHeight           = 40.f;
 CGFloat const NKOPickerViewGradientTopMargin            = 20.f;
