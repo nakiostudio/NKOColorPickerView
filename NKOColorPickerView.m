@@ -126,7 +126,8 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 
 - (void)setColor:(UIColor *)newColor
 {
-    CGFloat hue, saturation;
+    CGFloat hue = 0.f;
+    CGFloat saturation = 0.f;
     [newColor getHue:&hue saturation:&saturation brightness:nil alpha:nil];
 
     currentHue = hue;
