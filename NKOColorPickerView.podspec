@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "NKOColorPickerView"
-  s.version      = "0.2"
+  s.version      = "0.3"
   s.summary      = "A block based and easy to use Color Picker View for iOS."
   s.description  = <<-DESC
                    A block based and easy to use Color Picker View for iOS.
@@ -9,8 +9,8 @@ Pod::Spec.new do |s|
   s.license      = {
 		:type => 'MIT',
 		:text => <<-LICENSE
-		Copyright (C) 2014 Carlos Vidal
-		
+		Copyright (C) 2015 Carlos Vidal
+
 		Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 		The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
 		LICENSE
 	}
   s.author       = { "Carlos Vidal" => "carlos@nakiostudio.com" }
-  s.source       = { :git => "https://github.com/FWCarlos/NKO-Color-Picker-View-iOS.git", :tag => "0.2" }
+  s.source       = { :git => "https://github.com/FWCarlos/NKO-Color-Picker-View-iOS.git", :tag => "0.3" }
   s.platform     = :ios, '5.0'
   s.source_files = '**/*.{h,m}'
   s.public_header_files = 'NKOColorPickerView.h'
