@@ -29,7 +29,7 @@
 
 #import "NKOColorPickerView.h"
 
-#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v) ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
 //NKOBrightnessView
 @interface NKOBrightnessView: UIView
@@ -123,7 +123,9 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 }
 
 - (void)setColor:(UIColor *)newColor {
-    CGFloat hue, saturation;
+    
+    CGFloat hue = 0.f;
+    CGFloat saturation = 0.f;
     [newColor getHue:&hue saturation:&saturation brightness:nil alpha:nil];
 
     self.currentHue = hue;
