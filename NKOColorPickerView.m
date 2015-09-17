@@ -29,6 +29,8 @@
 
 #import "NKOColorPickerView.h"
 
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+
 //NKOBrightnessView
 @interface NKOBrightnessView: UIView
 
@@ -52,23 +54,24 @@ CGFloat const NKOPickerViewBrightnessIndicatorWidth     = 16.f;
 CGFloat const NKOPickerViewBrightnessIndicatorHeight    = 48.f;
 CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 
-@interface NKOColorPickerView() {
-	CGFloat currentBrightness;
-	CGFloat currentHue;
-	CGFloat currentSaturation;
-}
+@interface NKOColorPickerView()
 
 @property (nonatomic, strong) NKOBrightnessView *gradientView;
+
 @property (nonatomic, strong) UIImageView *brightnessIndicator;
 @property (nonatomic, strong) UIImageView *hueSatImage;
 @property (nonatomic, strong) UIView *crossHairs;
+
+@property (nonatomic, assign) CGFloat currentBrightness;
+@property (nonatomic, assign) CGFloat currentSaturation;
+@property (nonatomic, assign) CGFloat currentHue;
 
 @end
 
 @implementation NKOColorPickerView
 
-- (id)initWithFrame:(CGRect)frame color:(UIColor*)color andDidChangeColorBlock:(NKOColorPickerDidChangeColorBlock)didChangeColorBlock
-{
+- (id)initWithFrame:(CGRect)frame color:(UIColor*)color andDidChangeColorBlock:(NKOColorPickerDidChangeColorBlock)didChangeColorBlock {
+    
     self = [super init];
     
     if (self != nil){
@@ -81,25 +84,20 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
     return self;
 }
 
-- (void)willMoveToSuperview:(UIView *)newSuperview
-{
-    [super willMoveToSuperview:newSuperview];
+- (void)willMoveToSuperview:(UIView *)newSuperview {
     
-    if (_color == nil){
-        _color = [self _defaultTintColor];
-    }
+    [super willMoveToSuperview:newSuperview];
     
     [self.crossHairs setHidden:NO];
     [self.brightnessIndicator setHidden:NO];
     
-    [self setColor:_color];
-    [self _updateBrightnessPosition];
-    [self _updateGradientColor];
-    [self _updateCrosshairPosition];
+    if (self->_color == nil){
+        self.color = [self _defaultTintColor];
+    }
 }
 
-- (void)layoutSubviews
-{
+- (void)layoutSubviews {
+    
     [super layoutSubviews];
     
     self.hueSatImage.frame = CGRectMake(NKOPickerViewDefaultMargin,
@@ -117,20 +115,19 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 }
 
 #pragma mark - Public methods
-- (void)setTintColor:(UIColor *)tintColor
-{
+
+- (void)setTintColor:(UIColor *)tintColor {
     self.hueSatImage.layer.borderColor = tintColor.CGColor;
     self.gradientView.layer.borderColor = tintColor.CGColor;
     self.brightnessIndicator.image = [[UIImage imageNamed:@"nko_brightness_guide"] nko_tintImageWithColor:tintColor];
 }
 
-- (void)setColor:(UIColor *)newColor
-{
+- (void)setColor:(UIColor *)newColor {
     CGFloat hue, saturation;
     [newColor getHue:&hue saturation:&saturation brightness:nil alpha:nil];
 
-    currentHue = hue;
-    currentSaturation = saturation;
+    self.currentHue = hue;
+    self.currentSaturation = saturation;
     [self _setColor:newColor];
     [self _updateGradientColor];
     [self _updateBrightnessPosition];
@@ -138,21 +135,20 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 }
 
 #pragma mark - Private methods
-- (void)_setColor:(UIColor *)newColor
-{
-    if (![_color isEqual:newColor]){
+
+- (void)_setColor:(UIColor *)newColor {
+    
+    if (![self->_color isEqual:newColor]){
         CGFloat brightness;
         [newColor getHue:NULL saturation:NULL brightness:&brightness alpha:NULL];
         CGColorSpaceModel colorSpaceModel = CGColorSpaceGetModel(CGColorGetColorSpace(newColor.CGColor));
+        
         if (colorSpaceModel==kCGColorSpaceModelMonochrome) {
             const CGFloat *c = CGColorGetComponents(newColor.CGColor);
-            _color = [UIColor colorWithHue:0
-                                saturation:0
-                                brightness:c[0]
-                                     alpha:1.0];
+            self->_color = [UIColor colorWithHue:0 saturation:0 brightness:c[0] alpha:1.0];
         }
         else{
-            _color = [newColor copy];
+            self->_color = [newColor copy];
         }
         
         if (self.didChangeColorBlock != nil){
@@ -161,32 +157,35 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
     }
 }
 
-- (void)_updateBrightnessPosition
-{
-    [_color getHue:nil saturation:nil brightness:&currentBrightness alpha:nil];
+- (void)_updateBrightnessPosition {
+    
+    CGFloat brightness = 0.f;
+    [self.color getHue:nil saturation:nil brightness:&brightness alpha:nil];
+    
+    self.currentBrightness = brightness;
     
     CGPoint brightnessPosition;
-    brightnessPosition.x = (1.0-currentBrightness)*self.gradientView.frame.size.width + self.gradientView.frame.origin.x;
+    brightnessPosition.x = (1.0-self.currentBrightness)*self.gradientView.frame.size.width + self.gradientView.frame.origin.x;
     brightnessPosition.y = self.gradientView.center.y;
     
     self.brightnessIndicator.center = brightnessPosition;
 }
 
-- (void)_updateCrosshairPosition
-{
+- (void)_updateCrosshairPosition {
+    
     CGPoint hueSatPosition;
     
-    hueSatPosition.x = (currentHue * self.hueSatImage.frame.size.width) + self.hueSatImage.frame.origin.x;
-    hueSatPosition.y = (1.0-currentSaturation) * self.hueSatImage.frame.size.height + self.hueSatImage.frame.origin.y;
+    hueSatPosition.x = (self.currentHue * self.hueSatImage.frame.size.width) + self.hueSatImage.frame.origin.x;
+    hueSatPosition.y = (1.0-self.currentSaturation) * self.hueSatImage.frame.size.height + self.hueSatImage.frame.origin.y;
     
     self.crossHairs.center = hueSatPosition;
     [self _updateGradientColor];
 }
 
-- (void)_updateGradientColor
-{
-    UIColor *gradientColor = [UIColor colorWithHue:currentHue
-                                        saturation:currentSaturation
+- (void)_updateGradientColor {
+    
+    UIColor *gradientColor = [UIColor colorWithHue:self.currentHue
+                                        saturation:self.currentSaturation
                                         brightness:1.0
                                              alpha:1.0];
 	
@@ -195,17 +194,17 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 	[self.gradientView setColor:gradientColor];
 }
 
-- (void)_updateHueSatWithMovement:(CGPoint)position
-{
-	currentHue = (position.x - self.hueSatImage.frame.origin.x) / self.hueSatImage.frame.size.width;
-	currentSaturation = 1.0 -  (position.y - self.hueSatImage.frame.origin.y) / self.hueSatImage.frame.size.height;
+- (void)_updateHueSatWithMovement:(CGPoint)position {
     
-	UIColor *_tcolor = [UIColor colorWithHue:currentHue
-                                  saturation:currentSaturation
-                                  brightness:currentBrightness
+	self.currentHue = (position.x - self.hueSatImage.frame.origin.x) / self.hueSatImage.frame.size.width;
+	self.currentSaturation = 1.0 -  (position.y - self.hueSatImage.frame.origin.y) / self.hueSatImage.frame.size.height;
+    
+	UIColor *_tcolor = [UIColor colorWithHue:self.currentHue
+                                  saturation:self.currentSaturation
+                                  brightness:self.currentBrightness
                                        alpha:1.0];
-    UIColor *gradientColor = [UIColor colorWithHue:currentHue
-                                        saturation:currentSaturation
+    UIColor *gradientColor = [UIColor colorWithHue:self.currentHue
+                                        saturation:self.currentSaturation
                                         brightness:1.0
                                              alpha:1.0];
 	
@@ -216,19 +215,19 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
     [self _setColor:_tcolor];
 }
 
-- (void)_updateBrightnessWithMovement:(CGPoint)position
-{
-	currentBrightness = 1.0 - ((position.x - self.gradientView.frame.origin.x)/self.gradientView.frame.size.width) ;
+- (void)_updateBrightnessWithMovement:(CGPoint)position {
+    
+	self.currentBrightness = 1.0 - ((position.x - self.gradientView.frame.origin.x)/self.gradientView.frame.size.width) ;
 	
-	UIColor *_tcolor = [UIColor colorWithHue:currentHue
-                                  saturation:currentSaturation
-                                  brightness:currentBrightness
+	UIColor *_tcolor = [UIColor colorWithHue:self.currentHue
+                                  saturation:self.currentSaturation
+                                  brightness:self.currentBrightness
                                        alpha:1.0];
     [self _setColor:_tcolor];
 }
 
-- (UIColor*)_defaultTintColor
-{
+- (UIColor*)_defaultTintColor {
+    
     UIWindow *window = [[[UIApplication sharedApplication] delegate] window];
     if ([window respondsToSelector:@selector(tintColor)]) {
         return [window tintColor];
@@ -236,23 +235,36 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
     return [UIColor whiteColor];
 }
 
+- (UIImage*)_imageWithName:(NSString*)name {
+    
+    if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"8.0")) {
+        NSBundle *libraryBundle = [NSBundle bundleForClass:[self class]];
+        UIImage *image = [UIImage imageNamed:name inBundle:libraryBundle compatibleWithTraitCollection:nil];
+        
+        return image;
+    }
+    else {
+        UIImage *image = [UIImage imageNamed:name];
+        
+        return image;
+    }
+}
+
 #pragma mark - Touch Handling methods
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
 	for (UITouch *touch in touches){
 		[self dispatchTouchEvent:[touch locationInView:self]];
     }
 }
 
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
-{
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
 	for (UITouch *touch in touches){
 		[self dispatchTouchEvent:[touch locationInView:self]];
 	}
 }
 
-- (void)dispatchTouchEvent:(CGPoint)position
-{
+- (void)dispatchTouchEvent:(CGPoint)position {
 	if (CGRectContainsPoint(self.hueSatImage.frame,position)){
         self.crossHairs.center = position;
 		[self _updateHueSatWithMovement:position];
@@ -264,8 +276,9 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 }
 
 #pragma mark - Lazy loading
-- (NKOBrightnessView*)gradientView
-{
+
+- (NKOBrightnessView*)gradientView {
+    
     if (self->_gradientView == nil){
         self->_gradientView = [[NKOBrightnessView alloc] init];
         self->_gradientView.frame = CGRectMake(NKOPickerViewDefaultMargin,
@@ -288,10 +301,10 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
     return self->_gradientView;
 }
 
-- (UIImageView*)hueSatImage
-{
+- (UIImageView*)hueSatImage {
+    
     if (self->_hueSatImage == nil){
-        self->_hueSatImage = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"nko_colormap.png"]];
+        self->_hueSatImage = [[UIImageView alloc] initWithImage:[self _imageWithName:@"nko_colormap.png"]];
         self->_hueSatImage.frame = CGRectMake(NKOPickerViewDefaultMargin,
                                               NKOPickerViewDefaultMargin,
                                               CGRectGetWidth(self.frame) - (NKOPickerViewDefaultMargin*2),
@@ -312,8 +325,8 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
     return self->_hueSatImage;
 }
 
-- (UIView*)crossHairs
-{
+- (UIView*)crossHairs {
+    
     if (self->_crossHairs == nil){
         self->_crossHairs = [[UIView alloc] initWithFrame:CGRectMake(CGRectGetWidth(self.frame)*0.5,
                                                                      CGRectGetHeight(self.frame)*0.5,
@@ -340,17 +353,18 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
     return self->_crossHairs;
 }
 
-- (UIImageView*)brightnessIndicator
-{
+- (UIImageView*)brightnessIndicator {
+    
     if (self->_brightnessIndicator == nil){
         self->_brightnessIndicator = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetWidth(self.gradientView.frame)*0.5f,
                                                                                    CGRectGetMinY(self.gradientView.frame)-4,
                                                                                    NKOPickerViewBrightnessIndicatorWidth,
                                                                                    NKOPickerViewBrightnessIndicatorHeight)];
         
-        self->_brightnessIndicator.image = [[UIImage imageNamed:@"nko_brightness_guide"] nko_tintImageWithColor:[self _defaultTintColor]];
-        self->_brightnessIndicator.backgroundColor = [UIColor clearColor];
+        
+        self->_brightnessIndicator.image = [[self _imageWithName:@"nko_brightness_guide"] nko_tintImageWithColor:[self _defaultTintColor]];
         self->_brightnessIndicator.autoresizingMask = UIViewAutoresizingNone;
+        self->_brightnessIndicator.backgroundColor = [UIColor clearColor];
     }
     
     if (self->_brightnessIndicator.superview == nil){
@@ -364,7 +378,7 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 
 
 // NKOBrightnessView
-@interface NKOBrightnessView(){
+@interface NKOBrightnessView() {
     CGGradientRef gradient;
 }
 
@@ -372,18 +386,19 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 
 @implementation NKOBrightnessView
 
-- (void)setColor:(UIColor*)color
-{
-    if (_color != color){
-        _color = [color copy];
+- (void)setColor:(UIColor*)color {
+
+    if (self->_color != color) {
+        self->_color = [color copy];
         [self setupGradient];
+        
         [self setNeedsDisplay];
     }
 }
 
-- (void)setupGradient
-{
-	const CGFloat *c = CGColorGetComponents(_color.CGColor);
+- (void)setupGradient {
+    
+	const CGFloat *c = CGColorGetComponents(self.color.CGColor);
     
 	CGFloat colors[] = {
 		c[0], c[1], c[2], 1.0f,
@@ -400,14 +415,13 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 	CGColorSpaceRelease(rgb);
 }
 
-- (void)drawRect:(CGRect)rect
-{
+- (void)drawRect:(CGRect)rect {
+    
 	CGContextRef context = UIGraphicsGetCurrentContext();
 
 	CGRect clippingRect = CGRectMake(0.0, 0.0, self.frame.size.width, self.frame.size.height);
 	
-	CGPoint endPoints[] =
-	{
+	CGPoint endPoints[] = {
 		CGPointMake(0,0),
 		CGPointMake(self.frame.size.width,0),
 	};
@@ -419,8 +433,7 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 	CGContextRestoreGState(context);
 }
 
-- (void)dealloc
-{
+- (void)dealloc {
     CGGradientRelease(gradient);
 }
 
@@ -430,8 +443,8 @@ CGFloat const NKOPickerViewCrossHairshWidthAndHeight    = 38.f;
 //UIImage category
 @implementation UIImage(NKO)
 
-- (UIImage*)nko_tintImageWithColor:(UIColor*)tintColor
-{
+- (UIImage*)nko_tintImageWithColor:(UIColor*)tintColor {
+    
     UIGraphicsBeginImageContextWithOptions(self.size, NO, 0.0f);
     
     CGContextRef ctx = UIGraphicsGetCurrentContext();
