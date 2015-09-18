@@ -1,10 +1,7 @@
 Pod::Spec.new do |s|
   s.name         = "NKOColorPickerView"
-  s.version      = "0.4"
+  s.version      = "0.5"
   s.summary      = "A block based and easy to use Color Picker View for iOS."
-  s.description  = <<-DESC
-                   A block based and easy to use Color Picker View for iOS.
-                   DESC
   s.homepage     = "https://github.com/FWCarlos/NKO-Color-Picker-View-iOS"
   s.license      = {
 		:type => 'MIT',
@@ -19,7 +16,7 @@ Pod::Spec.new do |s|
 		LICENSE
 	}
   s.author       = { "Carlos Vidal" => "carlos@nakiostudio.com" }
-  s.source       = { :git => "https://github.com/FWCarlos/NKO-Color-Picker-View-iOS.git", :tag => "0.4" }
+  s.source       = { :git => "https://github.com/FWCarlos/NKO-Color-Picker-View-iOS.git", :tag => "0.5" }
   s.platform     = :ios, '5.0'
   s.source_files = '**/*.{h,m}'
   s.public_header_files = 'NKOColorPickerView.h'
